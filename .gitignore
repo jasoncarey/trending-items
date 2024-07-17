@@ -4,6 +4,7 @@ venv
 
 # Compiled source
 *.pyc
+__pycache__
 
 # Logs
 *.log
