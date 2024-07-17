@@ -1,6 +1,5 @@
 import subprocess
 import time
-import os
 import sys
 
 
@@ -54,36 +53,6 @@ def wait_for_kafka():
     sys.exit(1)
 
 
-def start_producer():
-    print("Starting Kafka producer...")
-    producer_command = ["python3", "src/producer.py"]
-    producer_process = subprocess.Popen(
-        producer_command, stdout=sys.stdout, stderr=sys.stderr
-    )
-    print("Kafka producer started.")
-    return producer_process
-
-
-def start_consumer():
-    print("Starting Kafka consumer...")
-    consumer_command = ["python3", "src/consumer_socket.py"]
-    consumer_process = subprocess.Popen(
-        consumer_command, stdout=sys.stdout, stderr=sys.stderr
-    )
-    print("Kafka consumer started.")
-    return consumer_process
-
-
-def start_visualizer():
-    print("Starting Kafka visualizer...")
-    visualizer_command = ["python3", "src/heap_visualizer.py"]
-    visualizer_process = subprocess.Popen(
-        visualizer_command, stdout=sys.stdout, stderr=sys.stderr
-    )
-    print("Kafka visualizer started.")
-    return visualizer_process
-
-
 def monitor_logs(zk_process, kafka_process):
     while True:
         zk_line = zk_process.stderr.readline()
@@ -104,27 +73,18 @@ def main():
 
     wait_for_kafka()
 
-    producer_process = start_producer()
-    consumer_process = start_consumer()
-    visualizer_process = start_visualizer()
-
     try:
         monitor_logs(zk_process, kafka_process)
     except KeyboardInterrupt:
         print("Shutting down...")
         zk_process.terminate()
         kafka_process.terminate()
-        producer_process.terminate()
-        consumer_process.terminate()
-        visualizer_process.terminate()
         zk_process.wait()
         kafka_process.wait()
-        producer_process.wait()
-        consumer_process.wait()
-        visualizer_process.wait()
         zk_log.close()
         kafka_log.close()
         print("Shutdown complete.")
+        sys.exit(0)
 
 
 if __name__ == "__main__":
