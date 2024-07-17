@@ -1,34 +1,25 @@
-from flask import Flask, jsonify
-from heapq import heappush, heappop, heapify
+from flask import Flask, jsonify, render_template
 import threading
-import time
+from consumer_heap import get_heap_data
+from consumer_socket import consume_messages
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 heap = []
 
-@app.route('/heap', methods=['GET'])
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+@app.route("/heap", methods=["GET"])
 def get_heap():
-    return jsonify([item[1] for item in heap])
+    return jsonify(get_heap_data())
 
-def add_to_heap(item):
-    global heap
-    heap_item = (item['timestamp'], item)
-    if len(heap) < 100:
-        heappush(heap, heap_item)
-    else:
-        heappop(heap)
-        heappush(heap, heap_item)
 
-def mock_interaction_data():
-    while True:
-        item = {
-            'item_id': f'item_{time.time()}',
-            'timestamp': time.time()
-        }
-        add_to_heap(item)
-        time.sleep(1)
-
-if __name__ == '__main__':
-    threading.Thread(target=mock_interaction_data).start()
-    app.run(port=5000)
+if __name__ == "__main__":
+    threading.Thread(target=consume_messages, args=(socketio,), daemon=True).start()
+    socketio.run(app, host="127.0.0.1", port=5000)

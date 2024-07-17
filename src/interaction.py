@@ -1,8 +1,8 @@
 import time
 import uuid
 
+
 def generate_interaction():
-    return {
-        'id': str(uuid.uuid4()),
-        'timestamp': time.time()
-    }
+    interaction = {"id": str(uuid.uuid4()), "timestamp": time.time()}
+    # print(f"Produced interaction: {interaction}")
+    return interaction

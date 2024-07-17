@@ -4,6 +4,8 @@ import json
 import math
 import time
 
+HEAP_SIZE: int = 20
+
 conf = {
     "bootstrap.servers": "localhost:9092",
     "group.id": "heapGroup",
@@ -24,14 +26,17 @@ def calculate_score(interaction_time, current_time):
 
 def add_to_heap(item):
     global heap
-    current_time = time.time()
-    interaction_time = item["timestamp"]
-    score = calculate_score(interaction_time, current_time)
-    heap_item = (score, item)
-    if len(heap) < 100:
-        heappush(heap, heap_item)
-    else:
-        heappushpop(heap, heap_item)
+    if item is not None:
+        print("item:", item)
+        current_time = time.time()
+        interaction_time = item.get("timestamp")
+        score = calculate_score(interaction_time, current_time)
+        print(f"Added to heap: {item}, score: {score}")
+        heap_item = (score, item)
+        if len(heap) < HEAP_SIZE:
+            heappush(heap, heap_item)
+        else:
+            heappushpop(heap, heap_item)
 
 
 def consume_messages():
@@ -49,7 +54,12 @@ def consume_messages():
         else:
             interaction = json.loads(msg.value().decode("utf-8"))
             add_to_heap(interaction)
-            print(f"Added to heap: {interaction}")
+            print(f"heap state: {heap}")
+
+
+def get_heap_data():
+    print("heap:", heap)
+    return [{"score": item[0], **item[1]} for item in heap]
 
 
 if __name__ == "__main__":
