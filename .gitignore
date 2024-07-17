@@ -1,2 +1,9 @@
+# Virtual environment
 venv
 .venv
+
+# Compiled source
+*.pyc
+
+# Logs
+*.log

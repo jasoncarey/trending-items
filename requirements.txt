@@ -1,3 +1,4 @@
 pymongo
 confluent-kafka
 Flask
+flask-socketio
