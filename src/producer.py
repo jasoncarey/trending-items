@@ -1,27 +1,24 @@
-from pymongo import MongoClient
-from kafka import KafkaProducer
+from confluent_kafka import Producer
 import json
+from interaction import generate_interaction
+import time
 
-mongo_client = MongoClient('localhost', 27017)
-db = mongo_client['trending-db']
-collection = db['interactions']
+conf = { 'bootstrap.servers': 'localhost:9092' }
 
-producer = KafkaProducer(
-    bootstrap_servers=['localhost:9092'], 
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
+producer = Producer(conf)
 
-def listen_to_changes():
-    try:
-        with collection.watch() as stream:
-            for change in stream:
-                if change['operationType'] == 'insert':
-                    document = change['fullDocument']
-                    producer.send('interactions', document)
-                    print(f"Produced: {document}")
-    except Exception as e:
-        print(f"Error: {e}")
+def delivery_report(err, msg):
+    if err is not None:
+        print(f'Message delivery failed: {err}')
+    else:
+        print(f'Message delivered to {msg.topic()} [{msg.partition()}]')
+    
+def produce_messages():
+    while True:
+        interaction = generate_interaction()
+        producer.produce('interactions', json.dumps(interaction).encode('utf-8'), callback=delivery_report)
+        producer.flush()
+        time.sleep(1)
 
 if __name__ == '__main__':
-    listen_to_changes()
-
+    produce_messages()
