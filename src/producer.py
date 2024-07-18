@@ -1,30 +1,11 @@
 from confluent_kafka import Producer
 import json
 import time
-from random import randint, choices
+from generator import generate_interaction
 
 conf = {"bootstrap.servers": "localhost:9092"}
 
 producer = Producer(conf)
-
-item_post_times = {
-    str(i): time.time() - randint(0, 600) for i in range(1, 21)
-}  # generate random post times in the last 10 minutes
-
-
-def generate_interaction():
-    ids = list(item_post_times.keys())
-    weights = [10] * 10 + [1] * 10  # Weight IDs 1-10 more heavily (to view results)
-
-    interaction_id = choices(ids, weights)[0]
-    interaction = {
-        "id": interaction_id,
-        "timestamp": time.time(),
-        "post_time": item_post_times[interaction_id],
-    }
-
-    print(f"Generated interaction: {interaction}")
-    return interaction
 
 
 def delivery_report(err, msg):
@@ -36,9 +17,9 @@ def delivery_report(err, msg):
         )
 
 
-def produce_messages():
+def produce_messages(items):
     while True:
-        interaction = generate_interaction()
+        interaction = generate_interaction(items)
         print(f"Producing: {interaction}")
         producer.produce(
             "interactions",
@@ -46,8 +27,11 @@ def produce_messages():
             callback=delivery_report,
         )
         producer.flush()
-        time.sleep(0.01)
+        time.sleep(0.1)
 
 
 if __name__ == "__main__":
-    produce_messages()
+    from generator import generate_items
+
+    items = generate_items()
+    produce_messages(items)

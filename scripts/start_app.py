@@ -33,7 +33,7 @@ def start_visualizer():
 
 
 def main():
-    producer_process = start_producer()
+    # producer_process = start_producer()
     # consumer_visualizer_process = start_consumer_visualizer()
     visualizer_process = start_visualizer()
 
@@ -42,11 +42,9 @@ def main():
             pass
     except KeyboardInterrupt:
         print("Shutting down...")
-        producer_process.terminate()
-        # consumer_visualizer_process.terminate()
+        # producer_process.terminate()
         visualizer_process.terminate()
-        producer_process.wait()
-        # consumer_visualizer_process.wait()
+        # producer_process.wait()
         visualizer_process.wait()
         print("All processes terminated.")
         sys.exit(0)

@@ -4,9 +4,16 @@ import time
 
 BASE_DECAY_FACTOR = 0.1
 HEAP_SIZE: int = 20
-HEAP_LIFETIME = 600  # 10 minutes
+HEAP_LIFETIME = 600
+
 heap = []
 score_map = {}
+
+
+def initialize_items_lut(items):
+    global items_lut
+    items_lut = items.copy()
+    print(f"Items LUT: {items_lut}")
 
 
 def calculate_decay_factor(post_time, current_time):
@@ -29,38 +36,35 @@ def add_to_heap(item):
         else:
             score_map[interaction_id] = score
 
-        heap_item = (score_map[interaction_id], item)
+        heap_item = (score_map[interaction_id], interaction_id)
 
         if len(heap) < HEAP_SIZE:
             heappush(heap, heap_item)
         else:
-            heappushpop(heap, heap_item)
+            if score_map[interaction_id] > heap[0][0]:
+                heappushpop(heap, heap_item)
         print(f"Added to heap: {heap_item}")
-
-        heap = [
-            (score, item)
-            for score, item in heap
-            if (current_time - item.get("timestamp")) < HEAP_LIFETIME
-        ]
-        heapify(heap)
 
 
 def decay_heap():
     global heap, score_map
     current_time = time.time()
     new_heap = []
-    for score, item in heap:
-        post_time = item.get("post_time")
+    for _, interaction_id in heap:
+        post_time = items_lut.get(interaction_id)
         if post_time is None:
+            print(f"Skipping decay for {interaction_id} as post time is not found")
             continue
         decay_factor = calculate_decay_factor(post_time, current_time)
-        new_score = score_map[item.get("id")] * decay_factor
-        score_map[item.get("id")] = new_score
-        new_heap.append((new_score, item))
+        new_score = score_map[interaction_id] * decay_factor
+        score_map[interaction_id] = new_score
+        new_heap.append((new_score, interaction_id))
+
     heap[:] = new_heap
     heapify(heap)
     print(f"Decayed heap: {heap}")
 
 
 def get_heap_data():
-    return [{"score": item[0], **item[1]} for item in heap]
+    reversed_heap = sorted(heap, reverse=True)
+    return [{"score": item[0], "id": item[1]} for item in reversed_heap]

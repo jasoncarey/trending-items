@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, render_template
 import threading
-from heap import get_heap_data, decay_heap
+from heap import get_heap_data, decay_heap, initialize_items_lut
 from consumer_socket import consume_messages
+from producer import produce_messages
 from flask_socketio import SocketIO
 import time
 
@@ -37,11 +38,23 @@ def periodic_decay():
 
 
 if __name__ == "__main__":
+    from generator import generate_items
+
+    items = generate_items()
+    initialize_items_lut(items)
+    print(f"Items: {items}")
+
     print("Starting consumer thread...")
     threading.Thread(target=consume_messages, args=(socketio,), daemon=True).start()
+
+    print("Starting producer thread...")
+    threading.Thread(target=produce_messages, args=(items,), daemon=True).start()
+
     print("Starting heap data emitter thread...")
     threading.Thread(target=emit_heap_data, daemon=True).start()
+
     print("Starting periodic decay thread...")
     threading.Thread(target=periodic_decay, daemon=True).start()
+
     print("Running Flask app...")
     socketio.run(app, host="127.0.0.1", port=5000)
