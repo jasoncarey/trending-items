@@ -18,5 +18,5 @@ def generate_interaction(items):
         "post_time": items[interaction_id],
     }
 
-    print(f"Generated interaction: {interaction}")
+    # print(f"Generated interaction: {interaction}")
     return interaction

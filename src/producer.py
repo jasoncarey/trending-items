@@ -11,16 +11,16 @@ producer = Producer(conf)
 def delivery_report(err, msg):
     if err is not None:
         print(f"Message delivery failed: {err}")
-    else:
-        print(
-            f"Message delivered to {msg.topic()} topic in partition [{msg.partition()}]"
-        )
+    # else:
+    #     print(
+    #         f"Message delivered to {msg.topic()} topic in partition [{msg.partition()}]"
+    #     )
 
 
 def produce_messages(items):
     while True:
         interaction = generate_interaction(items)
-        print(f"Producing: {interaction}")
+        # print(f"Producing: {interaction}")
         producer.produce(
             "interactions",
             json.dumps(interaction).encode("utf-8"),
